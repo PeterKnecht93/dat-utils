@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'relea
 from releasetools import blockimgdiff, sparse_img
 
 def main(INPUT_IMAGE, OUT_DIR, VERSION):
-    __version__ = '1.7'
+    __version__ = '2.0'
     print('img2sdat binary - version: %s' % __version__)
 
     if not os.path.isdir(OUT_DIR):
