@@ -5,26 +5,33 @@ import brotli, os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'releasetools'))
 from releasetools import blockimgdiff, common, images, sparse_img
 
-def main(INPUT_IMAGE, compress, CACHE_SIZE, OUT_DIR, VERSION):
+def main(TARGET_IMAGE, SOURCE_IMAGE, compress, CACHE_SIZE, OUT_DIR, VERSION):
     __version__ = '2.0'
     print('img2sdat binary - version: %s' % __version__)
 
     if not os.path.isdir(OUT_DIR):
         os.makedirs(OUT_DIR)
 
-    OUT_FILE = os.path.join(OUT_DIR, os.path.splitext(os.path.basename(INPUT_IMAGE))[0])
+    OUT_FILE = os.path.join(OUT_DIR, os.path.splitext(os.path.basename(TARGET_IMAGE))[0])
 
     blockimgdiff.common.OPTIONS.cache_size = CACHE_SIZE
 
-    # Construct image
-    if common.IsSparseImage(INPUT_IMAGE):
-        INPUT_IMAGE = sparse_img.SparseImage(INPUT_IMAGE, clobbered_blocks='0')
+    # Construct target image
+    if common.IsSparseImage(TARGET_IMAGE):
+        TARGET_IMAGE = sparse_img.SparseImage(TARGET_IMAGE, clobbered_blocks='0')
     else:
-        INPUT_IMAGE = images.FileImage(INPUT_IMAGE)
+        TARGET_IMAGE = images.FileImage(TARGET_IMAGE)
+
+    # Construct source image if supplied
+    if SOURCE_IMAGE is not None:
+        if common.IsSparseImage(SOURCE_IMAGE):
+            SOURCE_IMAGE = sparse_img.SparseImage(SOURCE_IMAGE, clobbered_blocks='0')
+        else:
+            SOURCE_IMAGE = images.FileImage(SOURCE_IMAGE)
 
     # Generate Android data image
     print('- Generating Android data image...')
-    b = blockimgdiff.BlockImageDiff(INPUT_IMAGE, version=VERSION, disable_imgdiff=True)
+    b = blockimgdiff.BlockImageDiff(TARGET_IMAGE, SOURCE_IMAGE, version=VERSION, disable_imgdiff=True)
     b.Compute(OUT_FILE)
 
     # Compress image with brotli if specified
@@ -50,6 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A tool to convert partition images into Android data images.')
 
     parser.add_argument('input_image', help='input partition image')
+    parser.add_argument('original_image', nargs='?', help='original partition image')
     parser.add_argument('-b', '--brotli', action='store_true', help='compress data image with brotli')
     parser.add_argument('-c', '--cache-size', default=4 * 4096, type=int, help='cache partition size (16 KiB by default)')
     parser.add_argument('-o', '--out-dir', default='./', help='output directory (current directory by default)')
@@ -57,4 +65,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.input_image, args.brotli, args.cache_size, args.out_dir, args.version)
+    main(args.input_image, args.original_image, args.brotli, args.cache_size, args.out_dir, args.version)
