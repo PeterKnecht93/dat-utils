@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import os, sys
+import brotli, os, sys
 
 sys.path.append('./releasetools')
 from releasetools import blockimgdiff, common, images, sparse_img
 
-def main(INPUT_IMAGE, OUT_DIR, VERSION):
+def main(INPUT_IMAGE, compress, OUT_DIR, VERSION):
     __version__ = '2.0'
     print('img2sdat binary - version: %s' % __version__)
 
@@ -27,6 +27,20 @@ def main(INPUT_IMAGE, OUT_DIR, VERSION):
     b = blockimgdiff.BlockImageDiff(INPUT_IMAGE, version=VERSION, disable_imgdiff=True)
     b.Compute(OUT_FILE)
 
+    # Compress image with brotli if specified
+    if compress:
+        CHUNK_SIZE = 4096 * 4096
+        OUT_FILE = f'{OUT_FILE}.new.dat'
+        OUT_FILE_BR = f'{OUT_FILE}.br'
+
+        print('- Compressing image with brotli...')
+        with open(OUT_FILE, 'rb') as dat_in, open(OUT_FILE_BR, 'wb') as dat_out:
+            compressor = brotli.Compressor(quality=6)
+            while chunk := dat_in.read(CHUNK_SIZE):
+                dat_out.write(compressor.process(chunk))
+            dat_out.write(compressor.finish())
+        os.remove(OUT_FILE)
+
     print(f'\nDone! Output directory: {OUT_DIR}')
     return
 
@@ -36,9 +50,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A tool to convert partition images into Android data images.')
 
     parser.add_argument('input_image', help='input partition image')
+    parser.add_argument('-b', '--brotli', action='store_true', help='compress data image with brotli')
     parser.add_argument('-o', '--out-dir', default='./', help='output directory (current directory by default)')
     parser.add_argument('-v', '--version', default=4, type=int, help='transfer list format version (version 4 by default)')
 
     args = parser.parse_args()
 
-    main(args.input_image, args.out_dir, args.version)
+    main(args.input_image, args.brotli, args.out_dir, args.version)
