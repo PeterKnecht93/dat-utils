@@ -5,7 +5,7 @@ import brotli, os, sys
 sys.path.append('./releasetools')
 from releasetools import blockimgdiff, common, images, sparse_img
 
-def main(INPUT_IMAGE, compress, OUT_DIR, VERSION):
+def main(INPUT_IMAGE, compress, CACHE_SIZE, OUT_DIR, VERSION):
     __version__ = '2.0'
     print('img2sdat binary - version: %s' % __version__)
 
@@ -14,7 +14,7 @@ def main(INPUT_IMAGE, compress, OUT_DIR, VERSION):
 
     OUT_FILE = os.path.join(OUT_DIR, os.path.splitext(os.path.basename(INPUT_IMAGE))[0])
 
-    blockimgdiff.common.OPTIONS.cache_size = 4 * 4096
+    blockimgdiff.common.OPTIONS.cache_size = CACHE_SIZE
 
     # Construct image
     if common.IsSparseImage(INPUT_IMAGE):
@@ -51,9 +51,10 @@ if __name__ == '__main__':
 
     parser.add_argument('input_image', help='input partition image')
     parser.add_argument('-b', '--brotli', action='store_true', help='compress data image with brotli')
+    parser.add_argument('-c', '--cache-size', default=4 * 4096, type=int, help='cache partition size (16 KiB by default)')
     parser.add_argument('-o', '--out-dir', default='./', help='output directory (current directory by default)')
     parser.add_argument('-v', '--version', default=4, type=int, help='transfer list format version (version 4 by default)')
 
     args = parser.parse_args()
 
-    main(args.input_image, args.brotli, args.out_dir, args.version)
+    main(args.input_image, args.brotli, args.cache_size, args.out_dir, args.version)
