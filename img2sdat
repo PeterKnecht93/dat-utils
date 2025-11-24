@@ -9,7 +9,9 @@
 from __future__ import print_function
 
 import sys, os, errno, tempfile
-import common, blockimgdiff, sparse_img
+
+sys.path.append('./releasetools')
+from releasetools import blockimgdiff, common, sparse_img
 
 def main(INPUT_IMAGE, OUTDIR='.', VERSION=None, PREFIX='system'):
     global input
