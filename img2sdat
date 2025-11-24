@@ -21,7 +21,7 @@ def main(INPUT_IMAGE, OUT_DIR, VERSION):
 
     # Generate Android data image
     print('- Generating Android data image...')
-    b = blockimgdiff.BlockImageDiff(INPUT_IMAGE, version=VERSION)
+    b = blockimgdiff.BlockImageDiff(INPUT_IMAGE, version=VERSION, disable_imgdiff=True)
     b.Compute(OUT_FILE)
 
     print(f'\nDone! Output directory: {OUT_DIR}')
