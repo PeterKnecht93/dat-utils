@@ -3,7 +3,7 @@
 import os, sys
 
 sys.path.append('./releasetools')
-from releasetools import blockimgdiff, sparse_img
+from releasetools import blockimgdiff, common, images, sparse_img
 
 def main(INPUT_IMAGE, OUT_DIR, VERSION):
     __version__ = '2.0'
@@ -17,7 +17,10 @@ def main(INPUT_IMAGE, OUT_DIR, VERSION):
     blockimgdiff.common.OPTIONS.cache_size = 4 * 4096
 
     # Construct image
-    INPUT_IMAGE = sparse_img.SparseImage(INPUT_IMAGE, clobbered_blocks='0')
+    if common.IsSparseImage(INPUT_IMAGE):
+        INPUT_IMAGE = sparse_img.SparseImage(INPUT_IMAGE, clobbered_blocks='0')
+    else:
+        INPUT_IMAGE = images.FileImage(INPUT_IMAGE)
 
     # Generate Android data image
     print('- Generating Android data image...')
@@ -30,9 +33,9 @@ def main(INPUT_IMAGE, OUT_DIR, VERSION):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='A tool to convert sparse images into Android data images.')
+    parser = argparse.ArgumentParser(description='A tool to convert partition images into Android data images.')
 
-    parser.add_argument('input_image', help='input sparse image')
+    parser.add_argument('input_image', help='input partition image')
     parser.add_argument('-o', '--out-dir', default='./', help='output directory (current directory by default)')
     parser.add_argument('-v', '--version', default=4, type=int, help='transfer list format version (version 4 by default)')
 
