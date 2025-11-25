@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys
+import brotli, os, sys
 
 sys.path.append('./releasetools')
 from releasetools import rangelib
@@ -23,6 +23,19 @@ def ParseTransferList(TRANSFER_LIST):
 def main(TRANSFER_LIST, NEW_DAT, OUT_FILE):
     __version__ = '2.0'
     print('sdat2img binary - version: %s' % __version__)
+
+    # Decompress image if necessary
+    if NEW_DAT.endswith('.br'):
+        CHUNK_SIZE = 4096 * 4096
+        NEW_DAT_BR = NEW_DAT
+        NEW_DAT = os.path.splitext(NEW_DAT)[0]
+
+        print('- Decompressing image...')
+        with open(NEW_DAT_BR, 'rb') as input_image, open(NEW_DAT, 'wb') as output_image:
+            decompressor = brotli.Decompressor()
+            while chunk := input_image.read(CHUNK_SIZE):
+                output_image.write(decompressor.process(chunk))
+            os.remove(NEW_DAT_BR)
 
     # Set output path if none is specified
     if OUT_FILE is None:
