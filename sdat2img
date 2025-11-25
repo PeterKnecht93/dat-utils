@@ -21,7 +21,7 @@ def ParseTransferList(TRANSFER_LIST):
     return commands
 
 def main(TRANSFER_LIST, NEW_DAT, OUT_FILE):
-    __version__ = '2.0'
+    __version__ = '3.0'
     print('sdat2img binary - version: %s' % __version__)
 
     # Decompress image if necessary
